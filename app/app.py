@@ -22,7 +22,18 @@ st.set_page_config(
 # ── load assets ────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    return pd.read_csv("data/creditcard.csv")
+    path = "data/creditcard.csv"
+    if not os.path.exists(path):
+        os.makedirs("data", exist_ok=True)
+        st.info("📥 Downloading dataset for first time... (~30 seconds)")
+        import gdown
+        gdown.download(
+            "https://drive.google.com/uc?id=1h9g0QgjrAOpxzEv5oDb2h0qbitj_jy8e",
+            path,
+            quiet=False
+        )
+    df = pd.read_csv(path)
+    return df
 
 @st.cache_resource
 def load_model_assets():
