@@ -28,7 +28,7 @@ def load_data():
         st.info("📥 Downloading dataset for first time... (~30 seconds)")
         import gdown
         gdown.download(
-            "https://drive.google.com/uc?id=YOUR_FILE_ID_HERE",
+            "https://drive.google.com/uc?id=1h9g0QgjrAOpxzEv5oDb2h0qbitj_jy8e",
             path,
             quiet=False
         )
