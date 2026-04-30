@@ -78,52 +78,38 @@ if page == "📊 Dataset Overview":
     col1.metric("Total transactions", f"{len(df):,}")
     col2.metric("Fraud cases",        f"{df['Class'].sum():,}")
     col3.metric("Fraud rate",         f"{df['Class'].mean()*100:.4f}%")
-    fraud_df = df[df['Class'] == 1]
-    avg_fraud = fraud_df['Amount'].mean() if not fraud_df.empty else 0
-    col4.metric("Avg fraud amount", f"${avg_fraud:.2f}")
+    col4.metric("Avg fraud amount",   f"${df[df['Class']==1]['Amount'].mean():.2f}")
+
     st.markdown("---")
     col_a, col_b = st.columns(2)
 
     with col_a:
         st.subheader("Class distribution")
-
-        counts = df['Class'].value_counts()
-        legit = counts.get(0, 0)
-        fraud = counts.get(1, 0)
-
         fig = px.bar(
             x=["Legitimate", "Fraud"],
-            y=[legit, fraud],
+            y=[df['Class'].value_counts()[0], df['Class'].value_counts()[1]],
             color=["Legitimate", "Fraud"],
             color_discrete_map={"Legitimate": "#378ADD", "Fraud": "#E24B4A"},
             labels={"x": "Class", "y": "Count"}
         )
-
         fig.update_layout(showlegend=False, height=300)
         st.plotly_chart(fig, width='stretch')
 
     with col_b:
         st.subheader("Transaction amount by class")
         fig2 = go.Figure()
-        fig2.add_trace(go.Histogram(
-            x=df[df['Class']==0]['Amount'],
-            name='Legitimate', marker_color='#378ADD', opacity=0.7, nbinsx=60
-        ))
-        fig2.add_trace(go.Histogram(
-            x=df[df['Class']==1]['Amount'],
-            name='Fraud', marker_color='#E24B4A', opacity=0.7, nbinsx=60
-        ))
-        fig2.update_layout(
-            barmode='overlay', height=300,
-            xaxis_title="Amount (USD)", yaxis_title="Count"
-        )
+        fig2.add_trace(go.Histogram(x=df[df['Class']==0]['Amount'],
+            name='Legitimate', marker_color='#378ADD', opacity=0.7, nbinsx=60))
+        fig2.add_trace(go.Histogram(x=df[df['Class']==1]['Amount'],
+            name='Fraud', marker_color='#E24B4A', opacity=0.7, nbinsx=60))
+        fig2.update_layout(barmode='overlay', height=300,
+            xaxis_title="Amount (USD)", yaxis_title="Count")
         st.plotly_chart(fig2, width='stretch')
-    
 
     st.subheader("Fraud rate by hour of day")
     df['Hour'] = (df['Time'] // 3600) % 24
     hourly = df.groupby(['Hour','Class']).size().unstack().fillna(0)
-    hourly['fraud_rate'] = hourly.get(1, 0) / (hourly.get(0, 0) + hourly.get(1, 0)) * 100
+    hourly['fraud_rate'] = hourly[1] / (hourly[0] + hourly[1]) * 100
     fig3 = px.bar(hourly, y='fraud_rate',
         labels={'fraud_rate': 'Fraud rate (%)', 'Hour': 'Hour of day'},
         color_discrete_sequence=['#E24B4A'])
